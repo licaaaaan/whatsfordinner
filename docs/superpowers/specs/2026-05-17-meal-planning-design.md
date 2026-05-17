@@ -7,7 +7,7 @@
 
 ## Overview
 
-A personal meal planning web app that lets a user configure a weekly meal plan, browse and approve AI-matched recipe suggestions, and generate a scaled shopping list. Taste preferences are tracked over time and used to bias future recommendations.
+A personal meal planning web app that lets a user configure a weekly meal plan, browse and approve recipe suggestions matched by cuisine and taste profile, and generate a scaled shopping list. Taste preferences are tracked over time and used to bias future recommendations.
 
 Primary user: personal use, with the ability to share with friends and family (each with their own account and taste profile).
 
@@ -50,7 +50,7 @@ Represents one planning session.
 | user_id | uuid | Foreign key to auth.users |
 | num_meals | integer | 1–7 |
 | num_people | integer | 1–10 |
-| cuisine_type | text | e.g. "Italian", "Mexican", "Surprise me" |
+| cuisine_type | text | TheMealDB area name (e.g. "Italian", "Mexican") or "surprise" (randomly selected area at generation time) |
 | created_at | timestamp | |
 
 ### `meal_plan_items`
@@ -63,7 +63,8 @@ Individual recipe decisions within a plan.
 | recipe_id | text | TheMealDB meal ID |
 | recipe_title | text | |
 | recipe_image | text | URL |
-| status | text | "approved" or "skipped" |
+| display_order | integer | Order in which the card is shown to the user |
+| status | text | "approved", "skipped", or "pending" (not yet reviewed) |
 
 ### `shopping_lists`
 Generated after approvals are complete.
