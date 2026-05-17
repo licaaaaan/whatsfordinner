@@ -20,6 +20,10 @@ export async function POST(
     decision: 'approved' | 'skipped'
   }
 
+  if (!itemId || !['approved', 'skipped'].includes(decision)) {
+    return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
+  }
+
   // Update the item status
   const { data: item, error: itemError } = await supabase
     .from('meal_plan_items')

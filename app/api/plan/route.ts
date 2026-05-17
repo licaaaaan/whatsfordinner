@@ -18,13 +18,17 @@ export async function POST(request: NextRequest) {
 
   const { num_meals, num_people, cuisine_type } = body
 
-  if (!num_meals || !num_people || !cuisine_type) {
+  if (num_meals == null || num_people == null || !cuisine_type) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
   }
 
   // Resolve cuisine area (random if "surprise")
-  const area =
-    cuisine_type === 'surprise' ? await fetchRandomArea() : cuisine_type
+  let area: string
+  try {
+    area = cuisine_type === 'surprise' ? await fetchRandomArea() : cuisine_type
+  } catch {
+    return NextResponse.json({ error: 'Failed to fetch cuisine data' }, { status: 503 })
+  }
 
   // Fetch user taste profile to exclude disliked recipes
   const { data: profileRow } = await supabase
@@ -36,7 +40,12 @@ export async function POST(request: NextRequest) {
   const dislikedIds: string[] = profileRow?.disliked_recipe_ids ?? []
 
   // Fetch recipes from TheMealDB and pick
-  const allMeals = await fetchMealsByArea(area)
+  let allMeals
+  try {
+    allMeals = await fetchMealsByArea(area)
+  } catch {
+    return NextResponse.json({ error: 'Failed to fetch recipes' }, { status: 503 })
+  }
   const chosen = pickMeals(allMeals, num_meals, dislikedIds)
 
   // Create meal plan row

@@ -26,6 +26,7 @@ export default function PlanForm({ areas }: { areas: string[] }) {
 
     const data = await res.json()
     if (res.ok) {
+      setLoading(false)
       router.push(`/plan/${data.planId}/review`)
     } else {
       alert(data.error ?? 'Something went wrong')
