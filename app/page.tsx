@@ -1,65 +1,75 @@
-import Image from "next/image";
+import { createClient } from '@/lib/supabase/server'
+import Link from 'next/link'
 
-export default function Home() {
+export default async function HomePage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  let recentPlans: Array<{ id: string; cuisine_type: string; num_meals: number; created_at: string }> = []
+
+  if (user) {
+    const { data } = await supabase
+      .from('meal_plans')
+      .select('id, cuisine_type, num_meals, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(3)
+    recentPlans = data ?? []
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <main className="min-h-screen bg-orange-50 flex flex-col items-center justify-center p-4">
+      <div className="max-w-md w-full text-center">
+        <h1 className="text-4xl font-bold text-orange-600 mb-2">What&apos;s for Dinner?</h1>
+        <p className="text-gray-500 mb-8">
+          Pick your cuisine, approve your meals, get your shopping list.
+        </p>
+
+        {user ? (
+          <>
+            <Link
+              href="/plan/new"
+              className="block w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-semibold transition-colors mb-4"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              Start a new meal plan →
+            </Link>
+            <Link
+              href="/profile"
+              className="block text-sm text-gray-400 hover:text-orange-500 transition-colors mb-6"
             >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+              View your profile
+            </Link>
+
+            {recentPlans.length > 0 && (
+              <div className="bg-white rounded-2xl p-5 shadow-sm text-left">
+                <h2 className="font-semibold text-gray-700 mb-3 text-sm">Recent plans</h2>
+                <ul className="space-y-2">
+                  {recentPlans.map(plan => (
+                    <li key={plan.id}>
+                      <Link
+                        href={`/plan/${plan.id}/shopping-list`}
+                        className="flex items-center justify-between py-1.5 text-sm hover:text-orange-500 transition-colors"
+                      >
+                        <span className="capitalize">{plan.cuisine_type} · {plan.num_meals} meals</span>
+                        <span className="text-xs text-gray-400">
+                          {new Date(plan.created_at).toLocaleDateString()}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </>
+        ) : (
+          <Link
+            href="/login"
+            className="block w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-semibold transition-colors"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+            Get started →
+          </Link>
+        )}
+      </div>
+    </main>
+  )
 }
