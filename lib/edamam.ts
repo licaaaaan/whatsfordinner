@@ -24,8 +24,9 @@ export async function fetchIngredients(
 
   const res = await fetch(url.toString())
 
-  if (res.status === 401 || res.status === 429) {
-    return []
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 429) return []
+    throw new Error(`Edamam API error: ${res.status}`)
   }
 
   const data = await res.json()

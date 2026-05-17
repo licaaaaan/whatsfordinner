@@ -10,6 +10,7 @@ export async function fetchAreas(): Promise<string[]> {
 
 export async function fetchMealsByArea(area: string): Promise<TheMealDBMeal[]> {
   const res = await fetch(`${BASE}/filter.php?a=${encodeURIComponent(area)}`)
+  if (!res.ok) return []
   const data = await res.json()
   return (data.meals as TheMealDBMeal[]) ?? []
 }

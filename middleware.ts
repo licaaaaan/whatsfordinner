@@ -25,7 +25,10 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user }, error } = await supabase.auth.getUser()
+  if (error) {
+    return supabaseResponse
+  }
 
   const { pathname } = request.nextUrl
   const isProtected =
