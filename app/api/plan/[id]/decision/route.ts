@@ -70,10 +70,10 @@ export async function POST(
     decision
   )
 
-  await supabase.from('taste_profiles').upsert({
-    user_id: user.id,
-    ...profileUpdate,
-  })
+  await supabase.from('taste_profiles').upsert(
+    { user_id: user.id, ...profileUpdate },
+    { onConflict: 'user_id' }
+  )
 
   return NextResponse.json({ ok: true })
 }
