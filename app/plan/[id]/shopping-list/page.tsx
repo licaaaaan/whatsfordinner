@@ -11,10 +11,14 @@ export default function ShoppingListPage() {
   const [items, setItems] = useState<ShoppingItem[]>([])
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetch(`/api/plan/${planId}/shopping-list`)
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error(`Failed to load shopping list (${r.status})`)
+        return r.json()
+      })
       .then(data => {
         if (data.items?.length > 0) {
           setItems(data.items)
@@ -22,13 +26,21 @@ export default function ShoppingListPage() {
         } else {
           setGenerating(true)
           return fetch(`/api/plan/${planId}/shopping-list`, { method: 'POST' })
-            .then(r => r.json())
+            .then(r => {
+              if (!r.ok) throw new Error(`Failed to generate shopping list (${r.status})`)
+              return r.json()
+            })
             .then(d => {
               setItems(d.items ?? [])
               setLoading(false)
               setGenerating(false)
             })
         }
+      })
+      .catch(err => {
+        setError(err instanceof Error ? err.message : 'Something went wrong')
+        setLoading(false)
+        setGenerating(false)
       })
   }, [planId])
 
@@ -40,6 +52,22 @@ export default function ShoppingListPage() {
           <p className="text-gray-500">
             {generating ? 'Building your shopping list…' : 'Loading…'}
           </p>
+        </div>
+      </main>
+    )
+  }
+
+  if (error) {
+    return (
+      <main className="min-h-screen bg-orange-50 flex items-center justify-center p-4">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          <button
+            onClick={() => router.push('/plan/new')}
+            className="bg-orange-500 text-white px-6 py-2 rounded-xl font-semibold"
+          >
+            Start over
+          </button>
         </div>
       </main>
     )

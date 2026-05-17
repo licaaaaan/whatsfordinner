@@ -12,12 +12,20 @@ export default function ReviewPage() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [loading, setLoading] = useState(true)
   const [deciding, setDeciding] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetch(`/api/plan/${planId}/items`)
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error(`Failed to load recipes (${r.status})`)
+        return r.json()
+      })
       .then(data => {
         setItems(data.items ?? [])
+        setLoading(false)
+      })
+      .catch(err => {
+        setError(err.message)
         setLoading(false)
       })
   }, [planId])
@@ -27,11 +35,18 @@ export default function ReviewPage() {
     setDeciding(true)
     const item = items[currentIndex]
 
-    await fetch(`/api/plan/${planId}/decision`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ itemId: item.id, decision }),
-    })
+    try {
+      const res = await fetch(`/api/plan/${planId}/decision`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemId: item.id, decision }),
+      })
+      if (!res.ok) throw new Error(`Decision failed (${res.status})`)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong')
+      setDeciding(false)
+      return
+    }
 
     if (currentIndex + 1 >= items.length) {
       router.push(`/plan/${planId}/shopping-list`)
@@ -51,6 +66,22 @@ export default function ReviewPage() {
             <div className="flex-1 h-12 bg-gray-200 rounded-xl" />
             <div className="flex-1 h-12 bg-gray-200 rounded-xl" />
           </div>
+        </div>
+      </main>
+    )
+  }
+
+  if (error) {
+    return (
+      <main className="min-h-screen bg-orange-50 flex items-center justify-center p-4">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          <button
+            onClick={() => router.push('/plan/new')}
+            className="bg-orange-500 text-white px-6 py-2 rounded-xl font-semibold"
+          >
+            Start over
+          </button>
         </div>
       </main>
     )

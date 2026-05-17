@@ -14,11 +14,12 @@ export async function POST(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Fetch plan to get num_people
+  // Fetch plan to get num_people (ownership check via user_id)
   const { data: plan } = await supabase
     .from('meal_plans')
     .select('num_people')
     .eq('id', planId)
+    .eq('user_id', user.id)
     .single()
 
   if (!plan) {
@@ -37,11 +38,16 @@ export async function POST(
   }
 
   // Call Edamam for each approved meal
-  const ingredientArrays = await Promise.all(
-    approvedItems.map(item =>
-      fetchIngredients(item.recipe_title, plan.num_people)
+  let ingredientArrays
+  try {
+    ingredientArrays = await Promise.all(
+      approvedItems.map(item =>
+        fetchIngredients(item.recipe_title, plan.num_people)
+      )
     )
-  )
+  } catch {
+    return NextResponse.json({ error: 'Failed to fetch ingredient data' }, { status: 502 })
+  }
 
   const items = mergeIngredients(ingredientArrays)
 
@@ -67,6 +73,18 @@ export async function GET(
 
   if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // Verify plan belongs to user before returning shopping list
+  const { data: planCheck } = await supabase
+    .from('meal_plans')
+    .select('id')
+    .eq('id', planId)
+    .eq('user_id', user.id)
+    .single()
+
+  if (!planCheck) {
+    return NextResponse.json({ items: [] })
   }
 
   const { data } = await supabase
