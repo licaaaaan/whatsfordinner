@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import CuisineChart from '@/components/CuisineChart'
@@ -21,12 +22,16 @@ export default function ProfilePage() {
   useEffect(() => {
     fetch('/api/profile')
       .then(r => {
+        if (r.status === 401) {
+          router.push('/login')
+          return
+        }
         if (!r.ok) throw new Error(`Failed to load profile (${r.status})`)
         return r.json()
       })
-      .then(setData)
+      .then(d => { if (d) setData(d) })
       .catch(err => setError(err.message))
-  }, [])
+  }, [router])
 
   async function handleSignOut() {
     await supabase.auth.signOut()
@@ -84,15 +89,15 @@ export default function ProfilePage() {
             <ul className="space-y-2">
               {data.recent_plans.map(plan => (
                 <li key={plan.id}>
-                  <button
-                    onClick={() => router.push(`/plan/${plan.id}/shopping-list`)}
-                    className="w-full text-left flex items-center justify-between py-2 border-b border-gray-50 last:border-0 hover:text-orange-500 transition-colors"
+                  <Link
+                    href={`/plan/${plan.id}/shopping-list`}
+                    className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0 hover:text-orange-500 transition-colors"
                   >
                     <span className="text-sm capitalize">{plan.cuisine_type} · {plan.num_meals} meals</span>
                     <span className="text-xs text-gray-400">
                       {new Date(plan.created_at).toLocaleDateString()}
                     </span>
-                  </button>
+                  </Link>
                 </li>
               ))}
             </ul>
