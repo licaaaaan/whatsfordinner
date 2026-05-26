@@ -112,6 +112,44 @@ export async function fetchRandomArea(): Promise<string> {
   return areas[Math.floor(Math.random() * areas.length)]
 }
 
+export type MealDetail = {
+  idMeal: string
+  strMeal: string
+  strMealThumb: string
+  strInstructions: string
+  strYoutube: string | null
+  strArea: string | null
+  strCategory: string | null
+  ingredients: { name: string; measure: string }[]
+}
+
+export async function fetchMealDetail(idMeal: string): Promise<MealDetail | null> {
+  const res = await fetch(`${BASE}/lookup.php?i=${encodeURIComponent(idMeal)}`)
+  if (!res.ok) return null
+  const data = await res.json()
+  const meal = data.meals?.[0]
+  if (!meal) return null
+
+  const ingredients: { name: string; measure: string }[] = []
+  for (let i = 1; i <= 20; i++) {
+    const name = (meal[`strIngredient${i}`] as string | null)?.trim()
+    if (!name) continue
+    const measure = (meal[`strMeasure${i}`] as string | null)?.trim() ?? ''
+    ingredients.push({ name, measure })
+  }
+
+  return {
+    idMeal: meal.idMeal,
+    strMeal: meal.strMeal,
+    strMealThumb: meal.strMealThumb,
+    strInstructions: meal.strInstructions ?? '',
+    strYoutube: meal.strYoutube || null,
+    strArea: meal.strArea || null,
+    strCategory: meal.strCategory || null,
+    ingredients,
+  }
+}
+
 export function pickMeals(
   meals: TheMealDBMeal[],
   count: number,
