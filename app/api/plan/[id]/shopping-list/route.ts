@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { fetchIngredients, mergeIngredients } from '@/lib/edamam'
+import { fetchMealIngredients, mergeShoppingIngredients } from '@/lib/themealdb'
 
 export async function POST(
   _request: NextRequest,
@@ -14,22 +14,22 @@ export async function POST(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Fetch plan to get num_people (ownership check via user_id)
-  const { data: plan } = await supabase
+  // Ownership check
+  const { data: planCheck } = await supabase
     .from('meal_plans')
-    .select('num_people')
+    .select('id')
     .eq('id', planId)
     .eq('user_id', user.id)
     .single()
 
-  if (!plan) {
+  if (!planCheck) {
     return NextResponse.json({ error: 'Plan not found' }, { status: 404 })
   }
 
-  // Fetch approved items
+  // Fetch approved items (need recipe_id for TheMealDB lookup)
   const { data: approvedItems } = await supabase
     .from('meal_plan_items')
-    .select('recipe_title')
+    .select('recipe_id, recipe_title')
     .eq('meal_plan_id', planId)
     .eq('status', 'approved')
 
@@ -37,19 +37,17 @@ export async function POST(
     return NextResponse.json({ error: 'No approved meals' }, { status: 400 })
   }
 
-  // Call Edamam for each approved meal
+  // Fetch ingredients from TheMealDB for each approved meal
   let ingredientArrays
   try {
     ingredientArrays = await Promise.all(
-      approvedItems.map(item =>
-        fetchIngredients(item.recipe_title, plan.num_people)
-      )
+      approvedItems.map(item => fetchMealIngredients(item.recipe_id))
     )
   } catch {
     return NextResponse.json({ error: 'Failed to fetch ingredient data' }, { status: 502 })
   }
 
-  const items = mergeIngredients(ingredientArrays)
+  const items = mergeShoppingIngredients(ingredientArrays)
 
   // Upsert shopping list
   const { error: upsertError } = await supabase
