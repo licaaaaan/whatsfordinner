@@ -41,9 +41,12 @@ export function mergeShoppingIngredients(
   const merged: Record<string, ShoppingItem> = {}
   for (const ingredients of allIngredients) {
     for (const ing of ingredients) {
-      const key = `${ing.name.toLowerCase()}__${ing.unit.toLowerCase()}`
+      const key = ing.name.toLowerCase()
       if (merged[key]) {
-        merged[key].amount = Math.round((merged[key].amount + ing.amount) * 10) / 10
+        if (merged[key].unit === ing.unit) {
+          merged[key].amount = Math.round((merged[key].amount + ing.amount) * 10) / 10
+        }
+        // same ingredient, different unit — keep first entry, skip duplicate
       } else {
         merged[key] = { name: ing.name, amount: ing.amount, unit: ing.unit, category: 'Ingredients' }
       }
