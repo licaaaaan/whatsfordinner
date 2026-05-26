@@ -17,7 +17,7 @@ export default function RecipeCard({ title, image, current, total, onKeep, onSki
       </div>
       <div className="p-5">
         <p className="text-xs text-gray-400 font-medium mb-1 text-center">
-          {current} of {total}
+          {current} of {total} meals chosen
         </p>
         <h2 className="text-xl font-bold text-gray-800 text-center mb-5">{title}</h2>
         <div className="flex gap-3">

@@ -3,9 +3,25 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-export default function PlanForm({ areas }: { areas: string[] }) {
+const CUISINE_OPTIONS = [
+  { label: 'Surprise me!', value: 'surprise' },
+  { label: 'Chinese', value: 'area:Chinese' },
+  { label: 'Korean', value: 'area:Korean' },
+  { label: 'Japanese', value: 'area:Japanese' },
+  { label: 'Italian', value: 'area:Italian' },
+  { label: 'Mexican', value: 'area:Mexican' },
+  { label: 'Indian', value: 'area:Indian' },
+  { label: 'Thai', value: 'area:Thai' },
+  { label: 'French', value: 'area:French' },
+  { label: 'Greek', value: 'area:Greek' },
+  { label: 'Pizza', value: 'search:pizza' },
+  { label: 'Pasta', value: 'category:Pasta' },
+  { label: 'Curry', value: 'search:curry' },
+  { label: 'Seafood', value: 'category:Seafood' },
+]
+
+export default function PlanForm() {
   const [numMeals, setNumMeals] = useState(5)
-  const [numPeople, setNumPeople] = useState(2)
   const [cuisine, setCuisine] = useState('surprise')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -19,7 +35,6 @@ export default function PlanForm({ areas }: { areas: string[] }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         num_meals: numMeals,
-        num_people: numPeople,
         cuisine_type: cuisine,
       }),
     })
@@ -58,36 +73,25 @@ export default function PlanForm({ areas }: { areas: string[] }) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Number of people
-          </label>
-          <input
-            type="range"
-            min={1}
-            max={10}
-            value={numPeople}
-            onChange={e => setNumPeople(Number(e.target.value))}
-            className="w-full accent-orange-500"
-          />
-          <div className="text-center text-orange-600 font-bold text-lg mt-1">
-            {numPeople} {numPeople === 1 ? 'person' : 'people'}
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Cuisine
           </label>
-          <select
-            value={cuisine}
-            onChange={e => setCuisine(e.target.value)}
-            className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
-          >
-            <option value="surprise">Surprise me!</option>
-            {areas.map(area => (
-              <option key={area} value={area}>{area}</option>
+          <div className="flex flex-wrap gap-2">
+            {CUISINE_OPTIONS.map(opt => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setCuisine(opt.value)}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                  cuisine === opt.value
+                    ? 'bg-orange-500 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-orange-100 hover:text-orange-700'
+                }`}
+              >
+                {opt.label}
+              </button>
             ))}
-          </select>
+          </div>
         </div>
 
         <button

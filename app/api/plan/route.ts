@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { fetchMealsByArea, fetchRandomArea, pickMeals } from '@/lib/themealdb'
+import {
+  fetchMealsByArea,
+  fetchMealsByCategory,
+  fetchMealsBySearch,
+  fetchRandomArea,
+  pickMeals,
+} from '@/lib/themealdb'
+import type { TheMealDBMeal } from '@/types'
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
@@ -12,20 +19,35 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json() as {
     num_meals: number
-    num_people: number
     cuisine_type: string
   }
 
-  const { num_meals, num_people, cuisine_type } = body
+  const { num_meals, cuisine_type } = body
 
-  if (num_meals == null || num_people == null || !cuisine_type) {
+  if (num_meals == null || !cuisine_type) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
   }
 
-  // Resolve cuisine area (random if "surprise")
+  // Resolve cuisine and fetch all candidate meals
   let area: string
+  let allMeals: TheMealDBMeal[]
   try {
-    area = cuisine_type === 'surprise' ? await fetchRandomArea() : cuisine_type
+    if (cuisine_type === 'surprise') {
+      area = await fetchRandomArea()
+      allMeals = await fetchMealsByArea(area)
+    } else if (cuisine_type.startsWith('area:')) {
+      area = cuisine_type.slice(5)
+      allMeals = await fetchMealsByArea(area)
+    } else if (cuisine_type.startsWith('category:')) {
+      area = cuisine_type.slice(9)
+      allMeals = await fetchMealsByCategory(area)
+    } else if (cuisine_type.startsWith('search:')) {
+      area = cuisine_type.slice(7)
+      allMeals = await fetchMealsBySearch(area)
+    } else {
+      area = cuisine_type
+      allMeals = await fetchMealsByArea(area)
+    }
   } catch {
     return NextResponse.json({ error: 'Failed to fetch cuisine data' }, { status: 503 })
   }
@@ -39,19 +61,14 @@ export async function POST(request: NextRequest) {
 
   const dislikedIds: string[] = profileRow?.disliked_recipe_ids ?? []
 
-  // Fetch recipes from TheMealDB and pick
-  let allMeals
-  try {
-    allMeals = await fetchMealsByArea(area)
-  } catch {
-    return NextResponse.json({ error: 'Failed to fetch recipes' }, { status: 503 })
-  }
-  const chosen = pickMeals(allMeals, num_meals, dislikedIds)
+  // Pick a large pool so the user can keep skipping until they reach their goal
+  const poolSize = Math.min(allMeals.length, Math.max(num_meals * 5, 20))
+  const chosen = pickMeals(allMeals, poolSize, dislikedIds)
 
-  // Create meal plan row
+  // Create meal plan row (num_people defaults to 2 for ingredient scaling)
   const { data: plan, error: planError } = await supabase
     .from('meal_plans')
-    .insert({ user_id: user.id, num_meals, num_people, cuisine_type: area })
+    .insert({ user_id: user.id, num_meals, num_people: 2, cuisine_type: area })
     .select()
     .single()
 

@@ -15,6 +15,20 @@ export async function fetchMealsByArea(area: string): Promise<TheMealDBMeal[]> {
   return (data.meals as TheMealDBMeal[]) ?? []
 }
 
+export async function fetchMealsByCategory(category: string): Promise<TheMealDBMeal[]> {
+  const res = await fetch(`${BASE}/filter.php?c=${encodeURIComponent(category)}`)
+  if (!res.ok) return []
+  const data = await res.json()
+  return (data.meals as TheMealDBMeal[]) ?? []
+}
+
+export async function fetchMealsBySearch(query: string): Promise<TheMealDBMeal[]> {
+  const res = await fetch(`${BASE}/search.php?s=${encodeURIComponent(query)}`)
+  if (!res.ok) return []
+  const data = await res.json()
+  return (data.meals as TheMealDBMeal[]) ?? []
+}
+
 export async function fetchRandomArea(): Promise<string> {
   const areas = await fetchAreas()
   return areas[Math.floor(Math.random() * areas.length)]

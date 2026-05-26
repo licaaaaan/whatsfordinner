@@ -23,5 +23,11 @@ export async function GET(
     return NextResponse.json({ error: 'Failed to fetch items' }, { status: 500 })
   }
 
-  return NextResponse.json({ items: items ?? [] })
+  const { data: plan } = await supabase
+    .from('meal_plans')
+    .select('num_meals')
+    .eq('id', planId)
+    .single()
+
+  return NextResponse.json({ items: items ?? [], numMeals: plan?.num_meals ?? 5 })
 }
