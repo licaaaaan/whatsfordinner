@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-type Mode = 'signin' | 'signup' | 'magic'
+type Mode = 'signin' | 'signup'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -20,10 +20,7 @@ export default function LoginPage() {
     setLoading(true)
     setMessage('')
 
-    if (mode === 'magic') {
-      const { error } = await supabase.auth.signInWithOtp({ email })
-      setMessage(error ? error.message : 'Check your email for a magic link!')
-    } else if (mode === 'signup') {
+    if (mode === 'signup') {
       const { error } = await supabase.auth.signUp({ email, password })
       setMessage(error ? error.message : 'Check your email to confirm your account.')
     } else {
@@ -37,7 +34,6 @@ export default function LoginPage() {
   const modeLabels: Record<Mode, string> = {
     signin: 'Sign In',
     signup: 'Sign Up',
-    magic: 'Magic Link',
   }
 
   return (
@@ -49,7 +45,7 @@ export default function LoginPage() {
         <p className="text-center text-gray-500 text-sm mb-6">Plan your week, stress-free.</p>
 
         <div className="flex gap-1 mb-6 bg-gray-100 rounded-full p-1">
-          {(['signin', 'signup', 'magic'] as Mode[]).map(m => (
+          {(['signin', 'signup'] as Mode[]).map(m => (
             <button
               key={m}
               type="button"
@@ -74,16 +70,14 @@ export default function LoginPage() {
             required
             className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
           />
-          {mode !== 'magic' && (
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
-            />
-          )}
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            required
+            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+          />
           <button
             type="submit"
             disabled={loading}
