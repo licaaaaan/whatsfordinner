@@ -88,16 +88,27 @@ export default function ProfilePage() {
             <h2 className="font-semibold text-gray-700 mb-3">Recent plans</h2>
             <ul className="space-y-2">
               {data.recent_plans.map(plan => (
-                <li key={plan.id}>
-                  <Link
-                    href={`/plan/${plan.id}/shopping-list`}
-                    className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0 hover:text-orange-500 transition-colors"
-                  >
-                    <span className="text-sm capitalize">{plan.cuisine_type} · {plan.num_meals} meals</span>
-                    <span className="text-xs text-gray-400">
-                      {new Date(plan.created_at).toLocaleDateString()}
-                    </span>
-                  </Link>
+                <li key={plan.id} className="py-2 border-b border-gray-50 last:border-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm capitalize text-gray-700 block">{plan.cuisine_type} · {plan.num_meals} meals</span>
+                      <span className="text-xs text-gray-400">{new Date(plan.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <Link
+                        href={`/plan/${plan.id}`}
+                        className="px-3 py-1.5 bg-orange-50 text-orange-600 hover:bg-orange-100 rounded-lg text-sm font-medium transition-colors"
+                      >
+                        Meals
+                      </Link>
+                      <Link
+                        href={`/plan/${plan.id}/shopping-list`}
+                        className="px-3 py-1.5 bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors"
+                      >
+                        List
+                      </Link>
+                    </div>
+                  </div>
                 </li>
               ))}
             </ul>

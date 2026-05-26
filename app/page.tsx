@@ -33,13 +33,6 @@ export default async function HomePage() {
             >
               Start a new meal plan →
             </Link>
-            <Link
-              href="/profile"
-              className="block text-sm text-gray-400 hover:text-orange-500 transition-colors mb-6"
-            >
-              View your profile
-            </Link>
-
             {recentPlans.length > 0 && (
               <div className="bg-white rounded-2xl p-5 shadow-sm text-left">
                 <h2 className="font-semibold text-gray-700 mb-3 text-sm">Recent plans</h2>
