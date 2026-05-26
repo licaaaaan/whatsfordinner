@@ -45,18 +45,20 @@ export default async function HomePage() {
                 <h2 className="font-semibold text-gray-700 mb-3 text-sm">Recent plans</h2>
                 <ul className="space-y-2">
                   {recentPlans.map(plan => (
-                    <li key={plan.id} className="flex items-center justify-between py-1.5">
-                      <div className="flex-1 min-w-0">
-                        <span className="text-sm capitalize text-gray-700">{plan.cuisine_type} · {plan.num_meals} meals</span>
-                        <span className="text-xs text-gray-400 ml-2">{new Date(plan.created_at).toLocaleDateString()}</span>
-                      </div>
-                      <div className="flex items-center gap-3 ml-2 flex-shrink-0">
-                        <Link href={`/plan/${plan.id}`} className="text-xs text-orange-500 hover:text-orange-600 font-medium transition-colors">
-                          Meals
-                        </Link>
-                        <Link href={`/plan/${plan.id}/shopping-list`} className="text-xs text-gray-400 hover:text-orange-500 transition-colors">
-                          🛒
-                        </Link>
+                    <li key={plan.id} className="py-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <span className="text-sm capitalize text-gray-700 block">{plan.cuisine_type} · {plan.num_meals} meals</span>
+                          <span className="text-xs text-gray-400">{new Date(plan.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <Link href={`/plan/${plan.id}`} className="px-3 py-1.5 bg-orange-50 text-orange-600 hover:bg-orange-100 rounded-lg text-sm font-medium transition-colors">
+                            Meals
+                          </Link>
+                          <Link href={`/plan/${plan.id}/shopping-list`} className="px-3 py-1.5 bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors">
+                            List
+                          </Link>
+                        </div>
                       </div>
                     </li>
                   ))}

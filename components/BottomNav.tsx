@@ -14,12 +14,8 @@ export default function BottomNav() {
 
   if (isHidden(pathname)) return null
 
-  const planMatch = pathname.match(/^\/plan\/([^/]+)/)
-  const planId = planMatch?.[1]
-  const shoppingHref = planId ? `/plan/${planId}/shopping-list` : '/'
-
   const isHome = pathname === '/'
-  const isShopping = !!planId && pathname.endsWith('/shopping-list')
+  const isShopping = pathname.endsWith('/shopping-list')
   const isProfile = pathname.startsWith('/profile')
 
   const active = 'text-orange-500'
@@ -27,7 +23,7 @@ export default function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 flex h-16 z-50 safe-area-inset-bottom">
-      <Link href={shoppingHref} className={`flex flex-col items-center justify-center flex-1 gap-0.5 ${isShopping ? active : inactive}`}>
+      <Link href="/plan/latest/shopping-list" className={`flex flex-col items-center justify-center flex-1 gap-0.5 ${isShopping ? active : inactive}`}>
         <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 6h11.7M9 19.5a.5.5 0 11-1 0 .5.5 0 011 0zm7 0a.5.5 0 11-1 0 .5.5 0 011 0z" />
         </svg>
