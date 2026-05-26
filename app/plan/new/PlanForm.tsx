@@ -22,9 +22,24 @@ const CUISINE_OPTIONS = [
 
 export default function PlanForm() {
   const [numMeals, setNumMeals] = useState(5)
-  const [cuisine, setCuisine] = useState('surprise')
+  const [cuisines, setCuisines] = useState<string[]>(['surprise'])
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+
+  function toggleCuisine(value: string) {
+    if (value === 'surprise') {
+      setCuisines(['surprise'])
+      return
+    }
+    setCuisines(prev => {
+      const withoutSurprise = prev.filter(v => v !== 'surprise')
+      if (withoutSurprise.includes(value)) {
+        const next = withoutSurprise.filter(v => v !== value)
+        return next.length > 0 ? next : ['surprise']
+      }
+      return [...withoutSurprise, value]
+    })
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -35,7 +50,7 @@ export default function PlanForm() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         num_meals: numMeals,
-        cuisine_type: cuisine,
+        cuisine_types: cuisines,
       }),
     })
 
@@ -75,15 +90,20 @@ export default function PlanForm() {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Cuisine
+            {cuisines.length > 1 && (
+              <span className="ml-2 text-orange-500 font-normal">
+                {cuisines.length} selected
+              </span>
+            )}
           </label>
           <div className="flex flex-wrap gap-2">
             {CUISINE_OPTIONS.map(opt => (
               <button
                 key={opt.value}
                 type="button"
-                onClick={() => setCuisine(opt.value)}
+                onClick={() => toggleCuisine(opt.value)}
                 className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                  cuisine === opt.value
+                  cuisines.includes(opt.value)
                     ? 'bg-orange-500 text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-orange-100 hover:text-orange-700'
                 }`}
