@@ -4,6 +4,30 @@ const BASE = 'https://www.themealdb.com/api/json/v1/1'
 
 type MealIngredient = { name: string; amount: number; unit: string }
 
+const DESCRIPTOR_WORDS = new Set([
+  // preparation state
+  'raw', 'frozen', 'fresh', 'dried', 'cooked', 'smoked', 'canned', 'tinned', 'pickled',
+  'boiled', 'fried', 'roasted', 'baked', 'grilled',
+  // cut / form
+  'chopped', 'sliced', 'diced', 'minced', 'crushed', 'grated', 'shredded', 'ground',
+  'mashed', 'peeled',
+  // size / quality
+  'large', 'small', 'medium', 'thick', 'thin', 'whole', 'half',
+  'jumbo', 'giant', 'king', 'queen', 'baby', 'lean', 'boneless', 'skinless',
+  // plant parts used as form words
+  'leaves', 'leaf', 'stalks', 'stalk', 'stems', 'stem',
+  'sprigs', 'sprig', 'florets', 'floret',
+  // generic piece words
+  'pieces', 'piece', 'slices', 'slice', 'chunks', 'chunk',
+  'strips', 'strip', 'cubes', 'cube', 'fillets', 'fillet',
+])
+
+function normalizeIngredientName(name: string): string {
+  const words = name.toLowerCase().trim().split(/\s+/)
+  const filtered = words.filter(w => !DESCRIPTOR_WORDS.has(w))
+  return (filtered.length > 0 ? filtered : words).join(' ')
+}
+
 function parseMeasure(raw: string): { amount: number; unit: string } {
   if (!raw) return { amount: 1, unit: '' }
   const match = raw.match(/^(\d+(?:\.\d+)?(?:\/\d+)?)\s*(.*)$/)
@@ -41,14 +65,15 @@ export function mergeShoppingIngredients(
   const merged: Record<string, ShoppingItem> = {}
   for (const ingredients of allIngredients) {
     for (const ing of ingredients) {
-      const key = ing.name.toLowerCase()
+      const key = normalizeIngredientName(ing.name)
+      const displayName = key.charAt(0).toUpperCase() + key.slice(1)
       if (merged[key]) {
         if (merged[key].unit === ing.unit) {
           merged[key].amount = Math.round((merged[key].amount + ing.amount) * 10) / 10
         }
         // same ingredient, different unit — keep first entry, skip duplicate
       } else {
-        merged[key] = { name: ing.name, amount: ing.amount, unit: ing.unit, category: 'Ingredients' }
+        merged[key] = { name: displayName, amount: ing.amount, unit: ing.unit, category: 'Ingredients' }
       }
     }
   }
